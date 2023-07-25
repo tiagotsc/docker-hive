@@ -119,11 +119,11 @@ Esse arquivo conterá todos os recursos e configurações necessárias que nossa
 
 2 - Adicione o seguinte conteúdo no arquivo **Dockerfile** e salve.
 
-https://github.com/tiagotsc/docker-hadoop/blob/19c425b95d4f350ed8e61f1cadd64ee1934f2b35/hadoop_3.3.5/namenode/Dockerfile#L1-L146
+https://github.com/tiagotsc/docker-hive/blob/ae1966f5842a513ec0ac8c187ac84fffa4eff53f/hive_3.1.3/Dockerfile#L1-L233
 
 3 - Na pasta onde tem o **Dockerfile**, crie o arquivo **script.sh** e adicione o conteúdo:
 
-https://github.com/tiagotsc/docker-hadoop/blob/19c425b95d4f350ed8e61f1cadd64ee1934f2b35/hadoop_3.3.5/namenode/script.sh#L1-L5
+https://github.com/tiagotsc/docker-hive/blob/ae1966f5842a513ec0ac8c187ac84fffa4eff53f/hive_3.1.3/script.sh#L1-L11
 
 Esse arquivo fará o ajuste de privilégios na nossa imagem.
 
