@@ -3,15 +3,17 @@
 
 **Apache Hive** é o **Data Warehouse** que pode ser integrado no **Data Lake Hadoop** sobre o **HDFS**, ou seja, um **Data Warehouse** rodando sobre uma infraestrutura de **Big Data**. 
 
-Com ele você vai conseguir interagir e manipular dados **estruturado** e **semi-estruturados** usando linguagem **SQL** no seu **Data Lake** de uma forma segura habilitando funcionalidades de autenticação e autorização no seu **Data Warehouse**, caso necessário.
+Com ele você vai consegue interagir e manipular dados **estruturado** e **semi-estruturados** usando linguagem **SQL** no seu **Data Lake**. 
 
-Isso torna sua interação com o Data Lake muito mais fácil, amigável e intuitiva através do bom e velho conhecido **SQL**.
+Inclusive o **Hive** é bem seguro quando se habilita as funcionalidades de autenticação e autorização quando necessário.
+
+Isso torna sua interação com o **Data Lake** muito mais fácil, amigável e intuitiva através do bom e velho conhecido **SQL**.
 
 No passo a passo a seguir, além de ser realizada a integração do **Hive** com o **Data Lake Hadoop**, será feita também a integração do **Hive** com o **Apache Tez** para que o **Hive** possa usar o **Tez** como motor de operações.
 
 **Apache Tez** foi feito para rodar sobre o **Yarn** e usando ele como motor as operações sobre o Hive podem ficar até 100x mais rápidas, ou seja, é uma baita de uma turbinada!
 
-Para o exemplo não usarei autenticação, mas o Hive suporte autenticações do tipo: **Nenhuma** (a que usaremos), **Kerberos**, **LDAP**, **custom** (você cria a sua em Java) e **PAM**.
+Para o exemplo não usarei autenticação, mas o **Hive** suporte autenticações do tipo: **Nenhuma** (a que usaremos), **Kerberos**, **LDAP**, **Custom** (você cria a sua em Java) e **PAM**.
 
 Na parte de autorização não utilizarei nenhuma, mas é possível definir níveis de permissões de uma forma bem semelhante aos bancos relacionais.
 
@@ -34,7 +36,7 @@ Abaixo segue o link para download.
 
   https://github.com/tiagotsc/docker-hadoop
 
-- Dbeaver (IDE para acessar diversos banco)
+- Dbeaver (IDE para acessar diversos bancos)
 
   https://dbeaver.io/download/
   
