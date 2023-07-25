@@ -1,11 +1,19 @@
 ﻿
 ## Docker - Adicionando Data Warehouse Hive 3.1.3 no cluster Hadoop 3.3.5
 
-Apache Hive é o Data Warehouse que roda no Data Lake Hadoop sobre o HDFS. 
+**Apache Hive** é o **Data Warehouse** que pode ser integrado no **Data Lake Hadoop** sobre o **HDFS**, ou seja, um **Data Warehouse** rodando sobre uma infraestrutura de **Big Data**. 
 
-Com ele você vai conseguir interagir e manipular dados estruturado e semi-estruturados usando linguagem SQL no seu Data Lake.
+Com ele você vai conseguir interagir e manipular dados **estruturado** e **semi-estruturados** usando linguagem **SQL** no seu **Data Lake** de uma forma segura habilitando funcionalidades de autenticação e autorização no seu **Data Warehouse**, caso necessário.
 
-Isso torna sua interação com o Data Lake muito mais fácil, amigável e intuitiva.
+Isso torna sua interação com o Data Lake muito mais fácil, amigável e intuitiva através do bom e velho conhecido **SQL**.
+
+No passo a passo a seguir, além de ser realizada a integração do **Hive** com o **Data Lake Hadoop**, será feita também a integração do **Hive** com o **Apache Tez** para que o **Hive** possa usar o **Tez** como motor de operações.
+
+**Apache Tez** foi feito para rodar sobre o **Yarn** e usando ele como motor as operações sobre o Hive podem ficar até 100x mais rápidas, ou seja, é uma baita de uma turbinada!
+
+Para o exemplo não usarei autenticação, mas o Hive suporte autenticações do tipo: **Nenhuma** (a que usaremos), **Kerberos**, **LDAP**, **custom** (você cria a sua em Java) e **PAM**.
+
+Na parte de autorização não utilizarei nenhuma, mas é possível definir níveis de permissões de uma forma bem semelhante aos bancos relacionais.
 
 ### Requisitos mínimos
 
@@ -46,7 +54,7 @@ cd hive
 
 ![App Screenshot](images/img1.png)
 
-3 - Faça o download do **Apache Hadoop 3.3.5**,  **Java JDK 1.8** e o **Tez**, e descompacte em qualquer lugar.
+3 - Faça o download do **Apache Hadoop 3.3.5**,  **Java JDK 1.8** e o **Tez 0.10.2**, e descompacte em qualquer lugar.
 
 Segue link dos binários, lembrando que os links podem mudar com o tempo:
 
@@ -89,7 +97,7 @@ cp -R jdk ~/hive/binarios/
 cp -R tez ~/hive/binarios/
 ```
 
-Como ficará o diretório **binarios** da pata **hive**, por exemplo:
+Como ficará o diretório **binarios** da pasta **hive**, por exemplo:
 
 ![App Screenshot](images/img2.png)
 
@@ -117,9 +125,9 @@ https://github.com/tiagotsc/docker-hadoop/blob/19c425b95d4f350ed8e61f1cadd64ee19
 
 Esse arquivo fará o ajuste de privilégios na nossa imagem.
 
-4 - Na pasta **config-files**, que foi criada anteriormente, adicione os arquivos que estão presentes na pasta **namenode/config-files** desse repositório.
+4 - Na pasta **config-files**, que foi criada anteriormente, adicione os arquivos que estão presentes na pasta **hive/config-files** desse repositório.
 
-Esses arquivos possuem as configurações necessárias para que o Hive se integrar com o nosso Data Lake Hadoop e possa fazer uso do Tez como motor de processamento.
+Esses arquivos possuem as configurações necessárias para que o **Hive** se integrado com o nosso **Data Lake Hadoop** e também para que possa fazer uso do Tez como motor de buscas.
 
 5 - Agora já podemos construir a imagem, estando na pasta **hive** que contém o arquivo **Dockerfile**, execute:
 
@@ -128,17 +136,34 @@ Esses arquivos possuem as configurações necessárias para que o Hive se integr
 docker build . -t hive:3.1.3
 ```
 
-6 - Imagem criada, já é possível subir o container, execute:
+6 - Imagem criada, já é possível subir o container executando um dos dois passos abaixo.
 
-```bash
-# OBS.: Crie o container usando a mesma rede docker do seu Data Lake para que eles possam se comunicar.
+Importante: O container precisa estar na mesma rede do DataLake para que eles possam se comunicar.
+
+````bash
 # No meu caso a rede é: hadoop_dl_net
-# Comando usado para criar rede: docker network create -d bridge hadoop_dl_net
-mkdir ~/db # Volume para banco MySql
-docker run -dit --net hadoop_dl_net --hostname hive --name hive -v /home/vagrant/db:/var/lib/mysql -p 10002:10002 -p 10000:10000 -p 8080:8080 -p 9999:9999 -p 8188:8188 --privileged hive:3.1.3 /usr/sbin/init
+# Comando usado para criar rede: 
+docker network create -d bridge hadoop_dl_net
+````
 
-docker run -dit --net hadoop_dl_net --hostname hive --name hive -p 10002:10002 -p 10000:10000 -p 8080:8080 -p 9999:9999 -p 8188:8188 --privileged hive:3.1.3 /usr/sbin/init
-```
+- 1ª opção: Suba o container atribuindo um volume para o MySQL para não perder seus dados.
+
+  A imagem criada já possuí uma instalação do MySQL para servir de Metastore.
+
+  ```bash
+  # Crie uma pasta para alocar os dados do banco e monte no container
+  mkdir ~/db 
+
+  # Suba o container referenciando a pasta
+  docker run -dit --net hadoop_dl_net --hostname hive --name hive -v /home/vagrant/db:/var/lib/mysql -p 10002:10002 -p 10000:10000 -p 8080:8080 -p 9999:9999 -p 8188:8188 --privileged hive:3.1.3 /usr/sbin/init
+  ```
+
+- 2ª opção: Suba o container direto sem volume
+
+  ````bash
+  # Suba o container sem pasta
+  docker run -dit --net hadoop_dl_net --hostname hive --name hive -p 10002:10002 -p 10000:10000 -p 8080:8080 -p 9999:9999 -p 8188:8188 --privileged hive:3.1.3 /usr/sbin/init
+  ````
 
 7 - Entre no container hive e execute os passos.
 
@@ -165,11 +190,14 @@ sudo mysql_secure_installation
 
 # 2 - Crie uma nova senha e confirme ela. Guarde bem essa nova senha.
 
-# 3 - Se perguntado se deseja alterar senha atual, informe N, pois a nova senha acabou de ser redefinida.
+# 3 - Será perguntado se deseja alterar senha atual, informe N, pois a nova senha acabou de ser redefinida.
 
-# 4 - Próxima pergunta se deseja remover usuário anonimo, informe Y (sim)
-# 5 - Próxima pergunta se deseja remover acesso remoto com o root, inform Y (sim)
+# 4 - Próxima pergunta se deseja remover usuário anônimo, informe Y (sim)
+
+# 5 - Próxima pergunta se deseja remover acesso remoto com o root, informe Y (sim)
+
 # 6 - Próxima pergunta se deseja remover banco de teste, informe Y (sim)
+
 # 7 - Próxima pergunta se deseja atualizar privilégios do banco, informe Y (sim)
 
 # Opcional, diretório banco, caso queira montar um volume
@@ -180,7 +208,7 @@ Abaixo segue um print dos passos executados anteriormente.
 
 ![App Screenshot](images/img4.png)
 
-9 - Vamos agora acesar o MySql, criar o banco metastore para uso do **Hive** e vamos criar usuário de acesso para ele.
+9 - Vamos agora acesar o MySql, criar o banco **metastore** para uso do **Hive** e vamos criar usuário de acesso para ele.
 
 ````bash
 # Acesso o Mysql com usuário root e senha definida anteriormente.
@@ -223,7 +251,7 @@ exit;
   exit;
   ````
 
-- 2ª: Fora do MySql, via schematool
+- 2ª: Fora do MySql, via **schematool**
 
   ````bash
   # Popule o banco Metastore executando o comando
@@ -250,7 +278,7 @@ exit;
   exit;
   ````
 
-11 - Adicione o **Tez** no HDFS.
+11 - Adicione o **Tez** no **HDFS**.
 
 ````bash
 # Data Lake ligado, crie a pasta no HDFS
@@ -260,7 +288,7 @@ hdfs dfs -mkdir -p /apps/tez
 hdfs dfs -put $TEZ_HOME/share/tez.tar.gz /apps/tez
 ````
 
-12 - Inicie o Apache Tomcat para ter acesso ao **Tez UI**
+12 - Inicie o **Apache Tomcat** para ter acesso ao **Tez UI**
 
 ````bash
 # Inicie o TOMCAT
@@ -274,19 +302,18 @@ http://IP_SUA_VM:8080/
 # Senha: password
 ````
 
-13 - Suba os serviços para que o Hive possa ser acessado
+13 - Suba os serviços para que o **Hive** possa ser acessado
 
 ````bash
 mapred --daemon start historyserver
 yarn --daemon start timelineserver
 nohup hive --service metastore > metastore.log &
-
 # Inicia Hive server
 nohup hive --service hiveserver2 > hive.log &
 # Hive server, se quiser iniciar com debug habilitado, execute
 hive --service hiveserver2 --hiveconf hive.root.logger=DEBUG,console
 ````
-- Se o seu Docker estiver rodando direito no seu SO host, acesse:
+- Se o seu **Docker** estiver rodando direito no seu SO host, acesse:
   
   HiveServer2: 
   http://localhost:10002
@@ -308,7 +335,7 @@ Para HiveServer2
 ![App Screenshot](images/img3.png)
 
 Para Tez UI
-![App Screenshot](images/img3.png)
+![App Screenshot](images/img6.png)
 
 #### Enviando a imagem Hive para o DockerHub
 
@@ -331,6 +358,7 @@ Esse acesso pode ser feito de 2 forma:
   ````bash
   # Para acessar o Hive, execute
   hive
+
   # Opcional, dentro do hive se quiser mudar configurações da sessão, por exemplo, execute
   set mapreduce.framework.name=yarn;
   set hive.tez.cpu.vcores=1;
@@ -338,13 +366,13 @@ Esse acesso pode ser feito de 2 forma:
   # Opcional, se quiser entrar no Hive mudando antes algumas configurações, por exemplo, execute
   hive -hiveconf hive.tez.container.size=512 -hiveconf hive.tez.java.opts="-server -Xmx512m -Djava.net.preferIPv4Stack=true"
 
-  # Se quiser mudar a engine para mapreduce, execute
+  # Opcional, se quiser mudar a engine para mapreduce, execute
   set hive.execution.engine=mr;
 
-  # Se quiser mudar a engine para tez, execute
+  # Opcional, se quiser mudar a engine para tez, execute
   set hive.execution.engine=tez;
 
-  # Se quiser iniciar o hive CLI em debug, execute
+  # Opcional, se quiser iniciar o hive CLI em debug, execute
   hive --hiveconf hive.root.logger=DEBUG,console
 
   # Exemplo de como executar uma consulta sem precisar entrar no Hive
@@ -353,9 +381,12 @@ Esse acesso pode ser feito de 2 forma:
 
 - 2ª forma: Beeline CLI
   ````bash
+  # Entrar no Beeline
   beeline -u 'jdbc:hive2://192.168.56.200:10000'
+
   # sair beeline
   !q ou !quit
+
   # Se quiser executar uma consulta, só um exemplo, sem entrar no beeline, execute
   beeline -u 'jdbc:hive2://192.168.56.200:10000' -e "select * from student;"
   
@@ -364,13 +395,14 @@ Esse acesso pode ser feito de 2 forma:
   !connect jdbc:hive2://192.168.56.200:10000
   # Em seguida aperte ENTER 2x
 
-  # Se estiver com autenticação LDAP configurada, pode ser acessado da seguinte forma, por exemplo
+  # Se estiver com autenticação LDAP configurada, por exemplo, pode ser acessado da seguinte forma
   beeline -u 'jdbc:hive2://192.168.56.200:10000/default' -n usuario -p senha
   OU
   beeline
   !connect jdbc:hive2://192.168.56.200:10000/default;user=usuario;password=senha
-  Exemplo de como rodar uma consulta, com autenticação se disponível, sem entrar no Beeline
-  beeline -u 'jdbc:hive2://192.168.56.200:10000/default' -n admin -p tsc000 -e "select * from student;"
+
+  # Exemplo de como rodar uma consulta, com autenticação se disponível, sem entrar no Beeline
+  beeline -u 'jdbc:hive2://192.168.56.200:10000/default' -n admin -p senha -e "select * from student;"
   ````
 
 ### Acessando o Hive externamente através do DBeaver
@@ -381,8 +413,8 @@ Na tela principal, selecione o **Apache Hive** e clique em **Next**.
 
 ![App Screenshot](images/img7.png)
 
-Na próxima tela, no campo **Host** informe o IP da sua VM onde está rodando o Hive e clique em **Testar conexão**.
-No meu caso, minha VM é 192.168.56.200.
+Na próxima tela, no campo **Host** informe o **IP** da sua **VM** onde está rodando o **Hive** e clique em **Testar conexão**.
+No meu caso, minha **VM** é **192.168.56.200**.
 
 ![App Screenshot](images/img8.png)
 
@@ -390,21 +422,18 @@ Se tudo ocorrer bem, abrirá a seguinte janela e é só clicar em **OK** e depoi
 
 ![App Screenshot](images/img9.png)
 
-Se a conexão foi realizada com sucesso, você verá a seguinte tela com o banco **default** do Hive.
+Se a conexão foi realizada com sucesso, você verá a seguinte tela com o banco **default** do **Hive**.
 
 ![App Screenshot](images/img10.png)
 
-Show! Agora é só interagir com seu Data Lake manipulando dados estruturados e semi-estruturados através do mega popular **SQL**.
+Show! Agora é só interagir com seu Data Lake manipulando dados **estruturados** e **semi-estruturados** através do mega popular **SQL**.
 
 #### Concluiu todo o passo a passo e desejava remover os recursos criados, execute os comandos abaixo:
 
 ````bash
-docker container rm -f datanode1
-docker image rm hadoop_datanode:3.3.5
-docker container rm -f namenode1
-docker image rm hadoop_namenode:3.3.5
-docker image rm SEU_USUARIO_DOCKER/hadoop_namenode:3.3.5
-docker image rm SEU_USUARIO_DOCKER/hadoop_datanode:3.3.5
+docker container rm -f hive
+docker image rm hive:3.1.3
+docker image rm SEU_USUARIO_DOCKER/hive:3.1.3
 docker network rm hadoop_dl_net
 ````
 
@@ -428,67 +457,6 @@ vagrant destroy
 # Destrói a VM sem perguntar
 vagrant destroy -f
 
-##### HADOOP NAMENODE - Pode ser executado: #####
-# Dentro do container (docker exec -u hduser -it namenode1 /bin/bash)
-# OU 
-# via Docker (docker exec -u hduser namenode1 COMANDO_AQUI)
-
-# Formata o Namenode
-hdfs namenode -format
-
-# Inicia o Namenode
-hdfs --daemon start namenode
-
-# Para o Namenode
-hdfs --daemon stop namenode
-
-# Inicia todo o cluster Hadoop, Namenode + Datanodes associados
-$HADOOP_HOME/sbin/start-dfs.sh
-
-# Parar todo o cluster Hadoop, Namenode + Datanodes associados
-$HADOOP_HOME/sbin/stop-dfs.sh
-
-# Iniciar Yarn Resource Manager
-yarn --daemon start resourcemanager
-
-# Parar Yarn Resource Manager
-yarn --daemon stop resourcemanager
-
-# Inicia todo o cluster Yarn, Resource Manager + Node Manager
-$HADOOP_HOME/sbin/start-yarn.sh
-
-# Parar todo o cluster Yarn, Resource Manager + Node Manager
-$HADOOP_HOME/sbin/stop-yarn.sh
-
-# Listar jobs Yarn
-yarn application -list
-
-# Matar job Yarn
-yarn application -kill ID_APLICACAO
-
-# Ver log de job Yarn
-yarn logs -applicationId ID_APLICACAO
-
-# Listar os Node Manager Yarn
-yarn node -list
-
-##### HADOOP DATANODE - Pode ser executado: #####
-# Dentro do container (docker exec -u hduser -it datanode1 /bin/bash)
-# OU 
-# via Docker (docker exec -u hduser datanode1 COMANDO)
-
-# Inicia o Datanode
-hdfs --daemon start datanode
-
-# Para o Datanode
-hdfs --daemon stop datanode
-
-# Inicia o Yarn Node Manager 
-yarn --daemon start nodemanager
-
-# Para o Yarn Node Manager 
-yarn --daemon stop nodemanager
-
 ##### DOCKER #####
 
 # Listar redes
@@ -500,35 +468,26 @@ docker container ls -a
 # Listar imagens
 docker image ls
 
-# Se quiser parar os containers criados
-docker container stop namenode1 datanode1
+# Se quiser parar o container criado
+docker container stop hive
 
-# Se quiser iniciar os containers que já tinham sido criados em algum momento, caso estejam parados
-docker container start namenode1 datanode1
+# Se quiser iniciar o container que já tinham sido criado em algum momento, caso esteja parado
+docker container start hive
 
-# Se quiser remover os containers
-docker container rm -f namenode1 datanode1
+# Se quiser remover os container
+docker container rm -f hive
 
 # Se quiser remover as imagens criada
-docker image rm hadoop_namenode:3.3.5 hadoop_datanode:3.3.5
+docker image rm hive:3.1.3
 
 # Criar container a partir da imagem remota, caso tenha enviado para o DockerHub
-# Namenode
-docker run -dit --net hadoop_dl_net --hostname namenode1 --name namenode1 -p 9870:9870 -p 50030:50030 -p 8020:8020 --privileged SEU_USUARIO_DOCKER/hadoop_namenode:3.3.5 /usr/sbin/init
-# Datanode
-docker run -dit --net hadoop_dl_net --hostname datanode1 --name datanode1 --privileged tiagotsc/hadoop_datanode:3.3.5 /usr/sbin/init
+docker run -dit --net hadoop_dl_net --hostname hive --name hive -p 10002:10002 -p 10000:10000 -p 8080:8080 -p 9999:9999 -p 8188:8188 --privileged SEU_USUARIO_DOCKER/hive:3.1.3 /usr/sbin/init
 
 # Puxar só a imagem remota, caso tenha enviado para o DockerHub
-# Namenode
-docker pull SEU_USUARIO_DOCKER/hadoop_namenode:3.3.5
-# Datanode
-docker pull SEU_USUARIO_DOCKER/hadoop_datanode:3.3.5
+docker pull SEU_USUARIO_DOCKER/hive:3.1.3
 
 # Remove localmente imagem obtida do DockerHub
-# Namenode
-docker image rm SEU_USUARIO_DOCKER/hadoop_namenode:3.3.5
-# Datanode
-docker image rm SEU_USUARIO_DOCKER/hadoop_datanode:3.3.5
+docker image rm SEU_USUARIO_DOCKER/hive:3.1.3
 
 # Ficou sem espaço no seu ambiente Docker
 # Cuidado! esse comando apaga vários recursos criados pelo Docker, só é recomendado em ambientes puramente de testes
