@@ -5,8 +5,6 @@
 
 Com ele você vai consegue interagir e manipular dados **estruturado** e **semi-estruturados** usando linguagem **SQL** no seu **Data Lake**. 
 
-Inclusive o **Hive** é bem seguro quando se habilita as funcionalidades de autenticação e autorização quando necessário.
-
 Isso torna sua interação com o **Data Lake** muito mais fácil, amigável e intuitiva através do bom e velho conhecido **SQL**.
 
 No passo a passo a seguir, além de ser realizada a integração do **Hive** com o **Data Lake Hadoop**, será feita também a integração do **Hive** com o **Apache Tez** para que o **Hive** possa usar o **Tez** como motor de operações.
@@ -16,6 +14,8 @@ No passo a passo a seguir, além de ser realizada a integração do **Hive** com
 Para o exemplo não usarei autenticação, mas o **Hive** suporte autenticações do tipo: **Nenhuma** (a que usaremos), **Kerberos**, **LDAP**, **Custom** (você cria a sua em Java) e **PAM**.
 
 Na parte de autorização não utilizarei nenhuma, mas é possível definir níveis de permissões de uma forma bem semelhante aos bancos relacionais.
+
+O **Hive** é seguro e quando disponibilizado em ambientes de produção é recomendável habilitar a autenticação e autorização.
 
 ### Requisitos mínimos
 
