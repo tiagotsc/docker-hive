@@ -430,6 +430,19 @@ Se a conexão foi realizada com sucesso, você verá a seguinte tela com o banco
 
 Show! Agora é só interagir com seu Data Lake manipulando dados **estruturados** e **semi-estruturados** através do mega popular **SQL**.
 
+#### Parando Hive e serviços atrelados
+
+````bash
+# Liste os 2 serviços com nome RunJar e anote os PIDs, execute
+jps
+# Agora interrompa os serviços que possuem o nome RunJar, através do PID coletado anteriormente
+kill -9 NUMERO_PID_COLETADO
+# Pare o History Server
+mapred --daemon stop historyserver
+# Pare o Timeline Server
+yarn --daemon stop timelineserver
+````
+
 #### Concluiu todo o passo a passo e desejava remover os recursos criados, execute os comandos abaixo:
 
 ````bash
