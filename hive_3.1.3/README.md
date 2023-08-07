@@ -56,7 +56,7 @@ cd hive
 
 ![App Screenshot](images/img1.png)
 
-3 - Faça o download do **Apache Hadoop 3.3.5**,  **Java JDK 1.8** e o **Tez 0.10.2**, e descompacte em qualquer lugar.
+3 - Faça o download do **Apache Hadoop 3.3.5**,  **Java JDK 1.8**, **Apache Hive 3.1.3** e o **Tez 0.10.2**, e descompacte em qualquer lugar.
 
 Segue link dos binários, lembrando que os links podem mudar com o tempo:
 
